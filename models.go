@@ -26,26 +26,25 @@ type Config struct {
 	LaunchMode string
 	Port       string
 	Domain     string
+	logger     *bufferedlogger.Logger
 }
 
 func (config *Config) Launch(handlers SetUpHandlers) {
 	var err error
 
-	// Setting up logger
-	logger := bufferedlogger.InitLog(os.Stdout)
-	logger.Title.Info().Msg(strings.Join([]string{"=====", config.Name, " service is starting  ====="}, ""))
+	config.logger.Title.Info().Msg(strings.Join([]string{"=====", config.Name, " service is starting  ====="}, ""))
 
 	// создаём роутер
 	var router = httprouter.New()
 
 	handlers(router, config.DB)
-	logger.SubMsg.Info().Msg("Handlers have been announced")
+	config.logger.SubMsg.Info().Msg("Handlers have been announced")
 
 	var webServer http.Server
 
 	switch config.LaunchMode {
 	case "prod":
-		logger.SubMsg.Info().Msg("Production Mode is enabled")
+		config.logger.SubMsg.Info().Msg("Production Mode is enabled")
 		certManager := autocert.Manager{
 			Prompt: autocert.AcceptTOS,
 
@@ -81,17 +80,17 @@ func (config *Config) Launch(handlers SetUpHandlers) {
 					),
 				)
 				if err != nil {
-					logger.SubMsg.Err(err).Msg("Service stopped")
+					config.logger.SubMsg.Err(err).Msg("Service stopped")
 				}
 			}()
 
 			err := webServer.ListenAndServeTLS("", "")
 			if err != nil {
-				logger.SubMsg.Err(err).Msg("Service stopped")
+				config.logger.SubMsg.Err(err).Msg("Service stopped")
 			}
 		}()
 	case "dev":
-		logger.SubMsg.Warn().Msg("Development Mode is enabled")
+		config.logger.SubMsg.Warn().Msg("Development Mode is enabled")
 
 		webServer = http.Server{
 			Addr:              net.JoinHostPort("", config.Port),
@@ -104,14 +103,14 @@ func (config *Config) Launch(handlers SetUpHandlers) {
 		go func() {
 			err := webServer.ListenAndServe()
 			if err != nil {
-				logger.SubMsg.Err(err).Msg("Service stopped")
+				config.logger.SubMsg.Err(err).Msg("Service stopped")
 			}
 		}()
 	default:
-		logger.SubMsg.Error().Msg("Incorrect Launch Mode")
+		config.logger.SubMsg.Error().Msg("Incorrect Launch Mode")
 	}
 
-	logger.SubMsg.Info().Msg("The service has been launched!")
+	config.logger.SubMsg.Info().Msg("The service has been launched!")
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
@@ -123,6 +122,6 @@ func (config *Config) Launch(handlers SetUpHandlers) {
 
 	err = webServer.Shutdown(timeout)
 	if err != nil {
-		logger.SubMsg.Err(err).Msg("Service stopped")
+		config.logger.SubMsg.Err(err).Msg("Service stopped")
 	}
 }
