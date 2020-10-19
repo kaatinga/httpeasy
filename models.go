@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"github.com/julienschmidt/httprouter"
+	"log"
 	"net"
 	"net/http"
 	"os"
@@ -20,7 +21,6 @@ import (
 type SetUpHandlers func(r *httprouter.Router, db *sql.DB)
 
 type Config struct {
-	Name       string
 	Email      string
 	DB         *sql.DB
 	LaunchMode string
@@ -31,11 +31,16 @@ type Config struct {
 
 func (config *Config) Launch(handlers SetUpHandlers) {
 	var err error
-
-	config.Logger.Title.Info().Msg(strings.Join([]string{"=====", config.Name, " service is starting  ====="}, ""))
+	config.Logger.Title.Info().Str("port", config.Port).Msg("Launching the service on the")
 
 	// Create a new router
 	var router = httprouter.New()
+
+	// Configuration validation
+	if config.DB == nil {
+		log.Println("No DB connection")
+		os.Exit(1)
+	}
 
 	handlers(router, config.DB)
 	config.Logger.SubMsg.Info().Msg("Handlers have been announced")
