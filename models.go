@@ -34,7 +34,7 @@ func (config *Config) Launch(handlers SetUpHandlers) {
 
 	config.logger.Title.Info().Msg(strings.Join([]string{"=====", config.Name, " service is starting  ====="}, ""))
 
-	// создаём роутер
+	// Create a new router
 	var router = httprouter.New()
 
 	handlers(router, config.DB)
