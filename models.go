@@ -4,8 +4,8 @@ import (
 	"context"
 	"crypto/tls"
 	"database/sql"
+	"errors"
 	"github.com/julienschmidt/httprouter"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -29,7 +29,7 @@ type Config struct {
 	Logger     *bufferedlogger.Logger
 }
 
-func (config *Config) Launch(handlers SetUpHandlers) {
+func (config *Config) Launch(handlers SetUpHandlers) error {
 	var err error
 	config.Logger.Title.Info().Str("port", config.Port).Msg("Launching the service on the")
 
@@ -38,8 +38,7 @@ func (config *Config) Launch(handlers SetUpHandlers) {
 
 	// Configuration validation
 	if config.DB == nil {
-		log.Println("No DB connection")
-		os.Exit(1)
+		return errors.New("the DB connection is not ok #1")
 	}
 
 	handlers(router, config.DB)
@@ -129,4 +128,6 @@ func (config *Config) Launch(handlers SetUpHandlers) {
 	if err != nil {
 		config.Logger.SubMsg.Err(err).Msg("Service stopped")
 	}
+
+	return nil
 }
