@@ -7,8 +7,8 @@ import (
 
 func NewConfig() (config Config) {
 
-	// Setting up logger
+	// Setting up the config logger
 	logger := bufferedlogger.InitLog(os.Stdout)
-	config.logger = &logger
+	config.Logger = &logger
 	return
 }
