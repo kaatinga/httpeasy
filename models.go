@@ -33,7 +33,7 @@ func (config *Config) Launch(handlers SetUpHandlers) {
 
 	// Setting up logger
 	logger := bufferedlogger.InitLog(os.Stdout)
-	logger.Title.Info().Msg("===== Service is starting  =====")
+	logger.Title.Info().Msg(strings.Join([]string{"=====", config.Name, " service is starting  ====="}, ""))
 
 	// создаём роутер
 	var router = httprouter.New()
