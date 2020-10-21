@@ -7,7 +7,7 @@ import (
 
 func NewConfig() (config Config) {
 
-	// Setting up the config logger
+	// Setting up the config Logger
 	logger := bufferedlogger.InitLog(os.Stdout)
 	config.Logger = &logger
 	return

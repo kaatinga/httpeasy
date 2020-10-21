@@ -16,52 +16,81 @@ import (
 
 	"github.com/kaatinga/bufferedlogger"
 	"golang.org/x/crypto/acme/autocert"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 type SetUpHandlers func(r *httprouter.Router, db *sql.DB)
 
 type Config struct {
-	Email      string
-	DB         *sql.DB
-	LaunchMode string
-	Port       string
-	Domain     string
+	email      string
+	db         *sql.DB
+	launchMode string
+	port       string
+	domain     string
 	Logger     *bufferedlogger.Logger
+}
+
+func (config *Config) SetEmail(email string) {
+	config.email = email
+}
+
+func (config *Config) SetLaunchMode(mode string) {
+	config.launchMode = mode
+}
+
+func (config *Config) SetPort(port string) {
+	config.port = port
+}
+
+func (config *Config) SetDomain(domain string) {
+	config.domain = domain
+}
+
+func (config *Config) check() error {
+
+	v := validator.New()
+
+	err := v.Var(config.domain, "fqdn")
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (config *Config) Launch(handlers SetUpHandlers) error {
 	var err error
-	config.Logger.Title.Info().Str("port", config.Port).Msg("Launching the service on the")
+	config.Logger.Title.Info().Str("port", config.port).Msg("Launching the service on the")
 
 	// Create a new router
 	var router = httprouter.New()
 
 	// Configuration validation
-	if config.DB == nil {
-		return errors.New("the DB connection is not ok #1")
+	if config.db == nil {
+		return errors.New("the db connection is not ok #1")
 	}
 
-	handlers(router, config.DB)
+	handlers(router, config.db)
 	config.Logger.SubMsg.Info().Msg("Handlers have been announced")
 
 	var webServer http.Server
 
-	switch config.LaunchMode {
+	switch config.launchMode {
 	case "prod":
 		config.Logger.SubMsg.Info().Msg("Production Mode is enabled")
 		certManager := autocert.Manager{
 			Prompt: autocert.AcceptTOS,
 
-			// Domain
-			HostPolicy: autocert.HostWhitelist(config.Domain),
+			// domain
+			HostPolicy: autocert.HostWhitelist(config.domain),
 
 			// Folder for storing certificates
 			Cache: autocert.DirCache("certs"),
-			Email: config.Email,
+			Email: config.email,
 		}
 
 		webServer = http.Server{
-			Addr:              net.JoinHostPort("", config.Port),
+			Addr:              net.JoinHostPort("", config.port),
 			Handler:           router,
 			ReadTimeout:       1 * time.Minute,
 			ReadHeaderTimeout: 15 * time.Second,
@@ -79,7 +108,7 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 
 						// Redirect from http to https
 						http.RedirectHandler(
-							strings.Join([]string{"https://", config.Domain}, ""),
+							strings.Join([]string{"https://", config.domain}, ""),
 							http.StatusPermanentRedirect),
 					),
 				)
@@ -97,7 +126,7 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 		config.Logger.SubMsg.Warn().Msg("Development Mode is enabled")
 
 		webServer = http.Server{
-			Addr:              net.JoinHostPort("", config.Port),
+			Addr:              net.JoinHostPort("", config.port),
 			Handler:           router,
 			ReadTimeout:       1 * time.Minute,
 			ReadHeaderTimeout: 15 * time.Second,
