@@ -14,6 +14,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/kaatinga/assets"
 	"github.com/kaatinga/bufferedlogger"
 	"golang.org/x/crypto/acme/autocert"
 	"gopkg.in/go-playground/validator.v9"
@@ -53,6 +54,24 @@ func (config *Config) check() error {
 	err := v.Var(config.domain, "fqdn")
 	if err != nil {
 		return err
+	}
+
+	err = v.Var(config.email, "email")
+	if err != nil {
+		return err
+	}
+
+	if !(config.launchMode == "prod" || config.launchMode == "dev") {
+		return errors.New("incorrect launch mode is set")
+	}
+
+	port := assets.CheckUint16(config.port)
+	if port.Ok == false {
+		return errors.New("incorrect port number")
+	}
+
+	if port.Parameter < uint16(1001) || port.Parameter > uint16(9999) {
+		return errors.New("incorrect port range")
 	}
 
 	return nil
