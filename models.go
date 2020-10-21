@@ -126,23 +126,25 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 			},
 		}
 
+		// HTTP server to redirect
 		go func() {
-			go func() {
-				err := http.ListenAndServe(
-					":http",
-					certManager.HTTPHandler(
+			err := http.ListenAndServe(
+				":http",
+				certManager.HTTPHandler(
 
-						// Redirect from http to https
-						http.RedirectHandler(
-							strings.Join([]string{"https://", config.domain}, ""),
-							http.StatusPermanentRedirect),
-					),
-				)
-				if err != nil {
-					config.Logger.SubMsg.Err(err).Msg("Service stopped")
-				}
-			}()
+					// Redirect from http to https
+					http.RedirectHandler(
+						strings.Join([]string{"https://", config.domain}, ""),
+						http.StatusPermanentRedirect),
+				),
+			)
+			if err != nil {
+				config.Logger.SubMsg.Err(err).Msg("Service stopped")
+			}
+		}()
 
+		// HTTPS server to handle the service
+		go func() {
 			err := webServer.ListenAndServeTLS("", "")
 			if err != nil {
 				config.Logger.SubMsg.Err(err).Msg("Service stopped")
