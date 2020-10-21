@@ -24,7 +24,7 @@ type SetUpHandlers func(r *httprouter.Router, db *sql.DB)
 
 type Config struct {
 	email      string
-	db         *sql.DB
+	DB         *sql.DB
 	launchMode string
 	port       string
 	domain     string
@@ -74,6 +74,10 @@ func (config *Config) check() error {
 		return errors.New("incorrect port range")
 	}
 
+	if config.DB == nil {
+		return errors.New("the DB connection is not ok #1")
+	}
+
 	return nil
 }
 
@@ -92,12 +96,7 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 	// Create a new router
 	var router = httprouter.New()
 
-	// Configuration validation
-	if config.db == nil {
-		return errors.New("the db connection is not ok #1")
-	}
-
-	handlers(router, config.db)
+	handlers(router, config.DB)
 	config.Logger.SubMsg.Info().Msg("Handlers have been announced")
 
 	var webServer http.Server
