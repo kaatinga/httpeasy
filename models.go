@@ -79,6 +79,14 @@ func (config *Config) check() error {
 
 func (config *Config) Launch(handlers SetUpHandlers) error {
 	var err error
+
+	// Configuration Validation
+	err = config.check()
+	if err != nil {
+		return err
+	}
+
+	// Launching
 	config.Logger.Title.Info().Str("port", config.port).Msg("Launching the service on the")
 
 	// Create a new router
