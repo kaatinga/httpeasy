@@ -29,6 +29,7 @@ type Config struct {
 	port       string
 	domain     string
 	Logger     *bufferedlogger.Logger
+	hasDB      bool
 }
 
 func (config *Config) SetEmail(email string) {
@@ -45,6 +46,10 @@ func (config *Config) SetPort(port string) {
 
 func (config *Config) SetDomain(domain string) {
 	config.domain = domain
+}
+
+func (config *Config) SetDBMode() {
+	config.hasDB = true
 }
 
 func (config *Config) check() error {
@@ -74,8 +79,8 @@ func (config *Config) check() error {
 		return errors.New("incorrect port range")
 	}
 
-	if config.DB == nil {
-		return errors.New("the DB connection is not ok #1")
+	if config.hasDB && config.DB == nil {
+		return errors.New("the DB connection is nil")
 	}
 
 	return nil
