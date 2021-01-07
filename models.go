@@ -33,6 +33,11 @@ type Config struct {
 	hasDB      bool
 }
 
+// logStopped logs the reason why the web service was stopped.
+func (config *Config) logStopped(reason error) {
+	config.Logger.SubMsg.Err(reason).Msg("Service stopped")
+}
+
 func (config *Config) SetEmail(email string) {
 	config.email = email
 }
@@ -148,7 +153,7 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 				),
 			)
 			if err != nil {
-				config.Logger.SubMsg.Err(err).Msg("Service stopped")
+				config.logStopped(err)
 			}
 		}()
 
@@ -156,7 +161,7 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 		go func() {
 			err := webServer.ListenAndServeTLS("", "")
 			if err != nil {
-				config.Logger.SubMsg.Err(err).Msg("Service stopped")
+				config.logStopped(err)
 			}
 		}()
 	case "dev":
@@ -173,7 +178,7 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 		go func() {
 			err := webServer.ListenAndServe()
 			if err != nil {
-				config.Logger.SubMsg.Err(err).Msg("Service stopped")
+				config.logStopped(err)
 			}
 		}()
 	default:
@@ -192,7 +197,7 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 
 	err = webServer.Shutdown(timeout)
 	if err != nil {
-		config.Logger.SubMsg.Err(err).Msg("Service stopped")
+		config.logStopped(err)
 	}
 
 	return nil
