@@ -20,6 +20,8 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 )
 
+var timeOutDuration = 5 * time.Second
+
 // Function type to announce handlers.
 type SetUpHandlers func(r *httprouter.Router, db *sql.DB)
 
@@ -185,7 +187,7 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 			}
 		}()
 	default:
-		shutdown <- errors.New("incorrect Launch Mode")
+		shutdown <- errors.New("incorrect launch mode is missed by config.check() method")
 	}
 
 	config.Logger.SubMsg.Info().Msg("The service has been launched!")
@@ -200,11 +202,13 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 		config.Logger.SubMsg.Err(err).Msg("Received shutdown message")
 	}
 
-	timeout, cancelFunc := context.WithTimeout(context.Background(), 5*time.Second)
+	timeout, cancelFunc := context.WithTimeout(context.Background(), timeOutDuration)
 	defer cancelFunc()
 
-	config.Logger.SubMsg.Debug().Msg("Delay is set to 5 seconds")
+	config.Logger.SubMsg.Debug().Dur("timeout", timeOutDuration).Msg("Delay is set")
 	err = webServer.Shutdown(timeout)
+	close(interrupt)
+	close(shutdown)
 	config.Logger.SubMsg.Debug().Msg("Delayed Shutdown is executed")
 	if err != nil {
 		config.logStopped(err)
