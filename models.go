@@ -115,6 +115,9 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 
 	var webServer http.Server
 
+	// shutdown is a special channel to handle errors
+	shutdown := make(chan error, 2)
+
 	switch config.launchMode {
 	case "prod":
 		config.Logger.SubMsg.Info().Msg("Production Mode is enabled")
@@ -153,7 +156,7 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 				),
 			)
 			if err != nil {
-				config.logStopped(err)
+				shutdown <- enrichError("redirect to https error", err)
 			}
 		}()
 
@@ -161,7 +164,7 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 		go func() {
 			err := webServer.ListenAndServeTLS("", "")
 			if err != nil {
-				config.logStopped(err)
+				shutdown <- enrichError("https service error", err)
 			}
 		}()
 	case "dev":
@@ -178,11 +181,11 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 		go func() {
 			err := webServer.ListenAndServe()
 			if err != nil {
-				config.logStopped(err)
+				shutdown <- enrichError("http service error", err)
 			}
 		}()
 	default:
-		config.Logger.SubMsg.Error().Msg("Incorrect Launch Mode")
+		shutdown <- errors.New("incorrect Launch Mode")
 	}
 
 	config.Logger.SubMsg.Info().Msg("The service has been launched!")
@@ -190,7 +193,12 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
 
-	<-interrupt
+	select {
+	case osSignal := <-interrupt:
+		config.Logger.SubMsg.Error().Str("signal", osSignal.String()).Msg("Received interrupt")
+	case err := <-shutdown:
+		config.Logger.SubMsg.Err(err).Msg("Received shutdown message")
+	}
 
 	timeout, cancelFunc := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelFunc()
