@@ -203,7 +203,9 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 	timeout, cancelFunc := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelFunc()
 
+	config.Logger.SubMsg.Debug().Msg("Delay is set to 5 seconds")
 	err = webServer.Shutdown(timeout)
+	config.Logger.SubMsg.Debug().Msg("Delayed Shutdown is executed")
 	if err != nil {
 		config.logStopped(err)
 	}
