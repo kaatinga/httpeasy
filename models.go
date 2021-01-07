@@ -20,7 +20,7 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 )
 
-// Function type for announcing handlers.
+// Function type to announce handlers.
 type SetUpHandlers func(r *httprouter.Router, db *sql.DB)
 
 type Config struct {
