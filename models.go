@@ -65,12 +65,12 @@ func (config *Config) check() error {
 
 	err := v.Var(config.domain, "fqdn")
 	if err != nil {
-		return err
+		return enrichError("incorrect domain is set", err)
 	}
 
 	err = v.Var(config.email, "email")
 	if err != nil {
-		return err
+		return enrichError("incorrect email is set", err)
 	}
 
 	if !(config.launchMode == "prod" || config.launchMode == "dev") {
