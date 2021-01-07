@@ -20,6 +20,7 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 )
 
+// Function type for announcing handlers.
 type SetUpHandlers func(r *httprouter.Router, db *sql.DB)
 
 type Config struct {
@@ -52,6 +53,7 @@ func (config *Config) SetDBMode() {
 	config.hasDB = true
 }
 
+// check validates the web service configuration.
 func (config *Config) check() error {
 
 	v := validator.New()
@@ -71,11 +73,11 @@ func (config *Config) check() error {
 	}
 
 	port := assets.CheckUint16(config.port)
-	if port.Ok == false {
+	if !port.Ok {
 		return errors.New("incorrect port number")
 	}
 
-	if port.Parameter < uint16(1001) || port.Parameter > uint16(9999) {
+	if port.Parameter < 1001 || port.Parameter > 9999 {
 		return errors.New("incorrect port range")
 	}
 
@@ -86,6 +88,8 @@ func (config *Config) check() error {
 	return nil
 }
 
+// Launch enables the configured web service with the handlers that
+// announced in a function matched with SetUpHandlers type.
 func (config *Config) Launch(handlers SetUpHandlers) error {
 	var err error
 
