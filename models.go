@@ -105,18 +105,16 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 	config.Logger.Title.Info().Str("port", config.port).Msg("Launching the service on the")
 
 	// Create a new router
-	var router = httprouter.New()
-
-	handlers(router, config.DB)
-	config.Logger.SubMsg.Info().Msg("Handlers have been announced")
-
 	webServer := http.Server{
 		Addr:              net.JoinHostPort("", config.port),
-		Handler:           router,
+		Handler:           httprouter.New(),
 		ReadTimeout:       1 * time.Minute,
 		ReadHeaderTimeout: 15 * time.Second,
 		WriteTimeout:      1 * time.Minute,
 	}
+
+	handlers(webServer.Handler.(*httprouter.Router), config.DB)
+	config.Logger.SubMsg.Info().Msg("Handlers have been announced")
 
 	// shutdown is a special channel to handle errors
 	shutdown := make(chan error, 2)
