@@ -184,7 +184,6 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
-	close(interrupt)
 
 	select {
 	case osSignal := <-interrupt:
