@@ -35,11 +35,6 @@ type Config struct {
 	hasDB      bool
 }
 
-// logStopped logs the reason why the web service was stopped.
-func (config *Config) logStopped(reason error) {
-	config.Logger.SubMsg.Err(reason).Msg("Service stopped")
-}
-
 func (config *Config) SetEmail(email string) {
 	config.email = email
 }
@@ -115,7 +110,13 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 	handlers(router, config.DB)
 	config.Logger.SubMsg.Info().Msg("Handlers have been announced")
 
-	var webServer http.Server
+	webServer := http.Server{
+		Addr:              net.JoinHostPort("", config.port),
+		Handler:           router,
+		ReadTimeout:       1 * time.Minute,
+		ReadHeaderTimeout: 15 * time.Second,
+		WriteTimeout:      1 * time.Minute,
+	}
 
 	// shutdown is a special channel to handle errors
 	shutdown := make(chan error, 2)
@@ -134,15 +135,8 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 			Email: config.email,
 		}
 
-		webServer = http.Server{
-			Addr:              net.JoinHostPort("", config.port),
-			Handler:           router,
-			ReadTimeout:       1 * time.Minute,
-			ReadHeaderTimeout: 15 * time.Second,
-			WriteTimeout:      1 * time.Minute,
-			TLSConfig: &tls.Config{
-				GetCertificate: certManager.GetCertificate,
-			},
+		webServer.TLSConfig = &tls.Config{
+			GetCertificate: certManager.GetCertificate,
 		}
 
 		// HTTP server to redirect
@@ -172,14 +166,6 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 	case "dev":
 		config.Logger.SubMsg.Warn().Msg("Development Mode is enabled")
 
-		webServer = http.Server{
-			Addr:              net.JoinHostPort("", config.port),
-			Handler:           router,
-			ReadTimeout:       1 * time.Minute,
-			ReadHeaderTimeout: 15 * time.Second,
-			WriteTimeout:      1 * time.Minute,
-		}
-
 		go func() {
 			err := webServer.ListenAndServe()
 			if err != nil {
@@ -207,12 +193,6 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 
 	config.Logger.SubMsg.Debug().Dur("timeout", timeOutDuration).Msg("Delay is set")
 	err = webServer.Shutdown(timeout)
-	close(interrupt)
-	close(shutdown)
 	config.Logger.SubMsg.Debug().Msg("Delayed Shutdown is executed")
-	if err != nil {
-		config.logStopped(err)
-	}
-
-	return nil
+	return err
 }
