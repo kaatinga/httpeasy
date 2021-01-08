@@ -130,7 +130,7 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 			// domain
 			HostPolicy: autocert.HostWhitelist(config.domain),
 
-			// Folder for storing certificates
+			// Folder to store certificates
 			Cache: autocert.DirCache("certs"),
 			Email: config.email,
 		}
@@ -153,6 +153,7 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 			)
 			if err != nil {
 				shutdown <- enrichError("redirect to https error", err)
+				close(shutdown)
 			}
 		}()
 
@@ -161,6 +162,7 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 			err := webServer.ListenAndServeTLS("", "")
 			if err != nil {
 				shutdown <- enrichError("https service error", err)
+				close(shutdown)
 			}
 		}()
 	case "dev":
@@ -170,16 +172,19 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 			err := webServer.ListenAndServe()
 			if err != nil {
 				shutdown <- enrichError("http service error", err)
+				close(shutdown)
 			}
 		}()
 	default:
 		shutdown <- errors.New("incorrect launch mode is missed by config.check() method")
+		close(shutdown)
 	}
 
 	config.Logger.SubMsg.Info().Msg("The service has been launched!")
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
+	close(interrupt)
 
 	select {
 	case osSignal := <-interrupt:
