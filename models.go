@@ -90,6 +90,18 @@ func (config *Config) check() error {
 	return nil
 }
 
+// newWebService creates new http router and creates http.Server structure
+// with the created router inside.
+func (config *Config) newWebService() http.Server {
+	return http.Server{
+		Addr:              net.JoinHostPort("", config.port),
+		Handler:           httprouter.New(),
+		ReadTimeout:       1 * time.Minute,
+		ReadHeaderTimeout: 15 * time.Second,
+		WriteTimeout:      1 * time.Minute,
+	}
+}
+
 // Launch enables the configured web service with the handlers that
 // announced in a function matched with SetUpHandlers type.
 func (config *Config) Launch(handlers SetUpHandlers) error {
@@ -103,16 +115,9 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 
 	// Launching
 	config.Logger.Title.Info().Str("port", config.port).Msg("Launching the service on the")
+	webServer := config.newWebService()
 
-	// Create a new router
-	webServer := http.Server{
-		Addr:              net.JoinHostPort("", config.port),
-		Handler:           httprouter.New(),
-		ReadTimeout:       1 * time.Minute,
-		ReadHeaderTimeout: 15 * time.Second,
-		WriteTimeout:      1 * time.Minute,
-	}
-
+	// enable handlers inside SetUpHandlers function
 	handlers(webServer.Handler.(*httprouter.Router), config.DB)
 	config.Logger.SubMsg.Info().Msg("Handlers have been announced")
 
