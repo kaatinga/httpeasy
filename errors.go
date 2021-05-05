@@ -1,7 +1,20 @@
 package QuickHTTPServerLauncher
 
-import "errors"
+import (
+	cer "github.com/kaatinga/const-errs"
+)
 
-func enrichError(text string, err error) error {
-	return errors.New(text + ": " + err.Error())
+const (
+	errNoDBConnection cer.Error = "the db connection is nil"
+	errValidationError cer.Error = "validation failed"
+)
+
+type validationError string
+
+func (err validationError) Error() string {
+	return string(err)
+}
+
+func (err validationError) Is(target error) bool {
+	return target == errValidationError //nolint:errorlint
 }
