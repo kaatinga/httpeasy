@@ -1,70 +1,93 @@
 package QuickHTTPServerLauncher
 
 import (
+	"errors"
+	"github.com/davecgh/go-spew/spew"
 	"testing"
 )
 
-func TestConfig_check(t *testing.T) {
-
-	validConfig := Config{
-		email:      "info@yandex.ru",
-		launchMode: "prod",
-		port:       "8089",
-		domain:     "yandex.ru",
+var (
+	validConfig = Config{
+		SSL: &SSL{Email: "info@yandex.ru",
+			Domain: "yandex.ru",
+		},
+		ProductionMode: true,
+		HTTP: HTTP{
+			Port: 8089,
+		},
 	}
 
-	portTooSmall := Config{
-		email:      "info@yandex.ru",
-		launchMode: "prod",
-		port:       "500",
-		domain:     "yandex.ru",
+	portTooSmall = Config{
+		SSL: &SSL{Email: "info@yandex.ru",
+			Domain: "yandex.ru",
+		},
+		ProductionMode: true,
+		HTTP: HTTP{
+			Port: 50,
+		},
 	}
 
-	portTooBig := Config{
-		email:      "info@yandex.ru",
-		launchMode: "prod",
-		port:       "50000",
-		domain:     "yandex.ru",
+	portTooBig = Config{
+		SSL: &SSL{Email: "info@yandex.ru",
+			Domain: "yandex.ru",
+		},
+		ProductionMode: true,
+		HTTP: HTTP{
+			Port: 50000,
+		},
 	}
 
-	badEmail := Config{
-		email:      "info",
-		launchMode: "prod",
-		port:       "5000",
-		domain:     "yandex.ru",
+	badEmail = Config{
+		SSL: &SSL{Email: "info",
+			Domain: "yandex.ru",
+		},
+		ProductionMode: true,
+		HTTP: HTTP{
+			Port: 8089,
+		},
 	}
 
-	badDomain := Config{
-		email:      "info@yandex.ru",
-		launchMode: "prod",
-		port:       "5000",
-		domain:     "-",
+	badDomain = Config{
+		SSL: &SSL{Email: "info@yandex.ru",
+			Domain: "-",
+		},
+		ProductionMode: true,
+		HTTP: HTTP{
+			Port: 8089,
+		},
 	}
 
-	badMode := Config{
-		email:      "info@yandex.ru",
-		launchMode: "test",
-		port:       "5000",
-		domain:     "yandex.ru",
+	devMode = Config{
+		ProductionMode: false,
+		HTTP: HTTP{
+			Port: 8089,
+		},
 	}
+)
+
+func TestHTTP_check(t *testing.T) {
 
 	tests := []struct {
 		name    string
 		fields  Config
-		wantErr bool
+		wantErr error
 	}{
-		{"ok", validConfig, false},
-		{"port is too small", portTooSmall, true},
-		{"port is too big", portTooBig, true},
-		{"bad email", badEmail, true},
-		{"bad domain", badDomain, true},
-		{"bad launch mode", badMode, true},
+		{"ok1", devMode, nil},
+		{"ok2", validConfig, nil},
+		{"Port is too small", portTooSmall, errValidationError},
+		{"Port is too big", portTooBig, errValidationError},
+		{"bad Email", badEmail, errValidationError},
+		{"bad Domain", badDomain, errValidationError},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			config := tt.fields
-			if err := config.check(); (err != nil) != tt.wantErr {
-				t.Errorf("check() error = %v, wantErr %v", err, tt.wantErr)
+			err := tt.fields.check()
+			if err != nil {
+				t.Log(err)
+			}
+			if !errors.Is(err, tt.wantErr) {
+				spew.Dump(tt.fields)
+				t.Errorf("check() error\nhave %v\nwant %v\n", err, tt.wantErr)
 			}
 		})
 	}
