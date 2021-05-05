@@ -1,4 +1,4 @@
-module github.com/kaatinga/QuickHTTPServerLauncher
+module github.com/kaatinga/httpeasy
 
 go 1.16
 
