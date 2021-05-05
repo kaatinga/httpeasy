@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"database/sql"
-	"errors"
 	"github.com/julienschmidt/httprouter"
 	"net"
 	"net/http"
@@ -14,45 +13,53 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/kaatinga/assets"
 	"github.com/kaatinga/bufferedlogger"
 	"golang.org/x/crypto/acme/autocert"
-	"gopkg.in/go-playground/validator.v9"
 )
 
 var timeOutDuration = 5 * time.Second
 
-// Function type to announce handlers.
+// SetUpHandlers type to announce handlers.
 type SetUpHandlers func(r *httprouter.Router, db *sql.DB)
 
 type Config struct {
-	email      string
-	DB         *sql.DB
-	launchMode string
-	port       string
-	domain     string
-	Logger     *bufferedlogger.Logger
-	hasDB      bool
+	DB     *sql.DB `validate:"required_if=HasDB true"`
+	Logger *bufferedlogger.Logger
+	ProductionMode bool
+	HasDB          bool
+	HTTP
+	SSL *SSL `validate:"required_if=ProductionMode true"`
+}
+
+type HTTP struct {
+	Port           uint16 `env:"PORT" validate:"min=80,max=9999"`
+}
+
+type SSL struct {
+	Domain string `env:"DOMAIN" validate:"fqdn"`
+	Email  string `env:"EMAIL" validate:"email"`
 }
 
 func (config *Config) SetEmail(email string) {
-	config.email = email
+	config.SSL.Email = email
 }
 
-func (config *Config) SetLaunchMode(mode string) {
-	config.launchMode = mode
+func (config *Config) SetProductionMode() {
+	config.ProductionMode = true
 }
 
-func (config *Config) SetPort(port string) {
-	config.port = port
+func (config *Config) SetPort(port uint16) {
+	config.Port = port
 }
 
 func (config *Config) SetDomain(domain string) {
-	config.domain = domain
+	config.SSL.Domain = domain
 }
 
 func (config *Config) SetDBMode() {
-	config.hasDB = true
+	config.HasDB = true
 }
 
 // check validates the web service configuration.
@@ -60,31 +67,13 @@ func (config *Config) check() error {
 
 	v := validator.New()
 
-	err := v.Var(config.domain, "fqdn")
+	err := v.Struct(config)
 	if err != nil {
-		return enrichError("incorrect domain is set", err)
+		return validationError(err.Error())
 	}
 
-	err = v.Var(config.email, "email")
-	if err != nil {
-		return enrichError("incorrect email is set", err)
-	}
-
-	if !(config.launchMode == "prod" || config.launchMode == "dev") {
-		return errors.New("incorrect launch mode is set")
-	}
-
-	port := assets.CheckUint16(config.port)
-	if !port.Ok {
-		return errors.New("incorrect port number")
-	}
-
-	if port.Parameter < 1001 || port.Parameter > 9999 {
-		return errors.New("incorrect port range")
-	}
-
-	if config.hasDB && config.DB == nil {
-		return errors.New("the DB connection is nil")
+	if config.HasDB && config.DB == nil {
+		return errNoDBConnection
 	}
 
 	return nil
@@ -94,7 +83,7 @@ func (config *Config) check() error {
 // with the created router inside.
 func (config *Config) newWebService() http.Server {
 	return http.Server{
-		Addr:              net.JoinHostPort("", config.port),
+		Addr:              net.JoinHostPort("", assets.Uint162String(config.Port)),
 		Handler:           httprouter.New(),
 		ReadTimeout:       1 * time.Minute,
 		ReadHeaderTimeout: 15 * time.Second,
@@ -114,7 +103,7 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 	}
 
 	// Launching
-	config.Logger.Title.Info().Str("port", config.port).Msg("Launching the service on the")
+	config.Logger.Title.Info().Uint16("Port", config.Port).Msg("launching the service")
 	webServer := config.newWebService()
 
 	// enable handlers inside SetUpHandlers function
@@ -124,25 +113,25 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 	// shutdown is a special channel to handle errors
 	shutdown := make(chan error, 2)
 
-	switch config.launchMode {
-	case "prod":
-		config.Logger.SubMsg.Info().Msg("Production Mode is enabled")
+	switch config.ProductionMode {
+	case true:
+		config.Logger.SubMsg.Info().Msg("production mode is enabled")
 		certManager := autocert.Manager{
 			Prompt: autocert.AcceptTOS,
 
-			// domain
-			HostPolicy: autocert.HostWhitelist(config.domain),
+			// Domain
+			HostPolicy: autocert.HostWhitelist(config.SSL.Domain),
 
 			// Folder to store certificates
 			Cache: autocert.DirCache("certs"),
-			Email: config.email,
+			Email: config.SSL.Email,
 		}
 
 		webServer.TLSConfig = &tls.Config{
 			GetCertificate: certManager.GetCertificate,
 		}
 
-		// HTTP server to redirect
+		// Config server to redirect
 		go func() {
 			err := http.ListenAndServe(
 				":http",
@@ -150,12 +139,13 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 
 					// Redirect from http to https
 					http.RedirectHandler(
-						strings.Join([]string{"https://", config.domain}, ""),
+						strings.Join([]string{"https://", config.SSL.Domain}, ""),
 						http.StatusPermanentRedirect),
 				),
 			)
 			if err != nil {
-				shutdown <- enrichError("redirect to https error", err)
+				config.Logger.SubMsg.Print("redirect to http failed")
+				shutdown <- err
 				close(shutdown)
 			}
 		}()
@@ -164,42 +154,39 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 		go func() {
 			err := webServer.ListenAndServeTLS("", "")
 			if err != nil {
-				shutdown <- enrichError("https service error", err)
-				close(shutdown)
-			}
-		}()
-	case "dev":
-		config.Logger.SubMsg.Warn().Msg("Development Mode is enabled")
-
-		go func() {
-			err := webServer.ListenAndServe()
-			if err != nil {
-				shutdown <- enrichError("http service error", err)
+				shutdown <- err
 				close(shutdown)
 			}
 		}()
 	default:
-		shutdown <- errors.New("incorrect launch mode is missed by config.check() method")
-		close(shutdown)
+		config.Logger.SubMsg.Warn().Msg("development mode is enabled")
+
+		go func() {
+			err := webServer.ListenAndServe()
+			if err != nil {
+				shutdown <- err
+				close(shutdown)
+			}
+		}()
 	}
 
-	config.Logger.SubMsg.Info().Msg("The service has been launched!")
+	config.Logger.SubMsg.Info().Msg("the service has been launched!")
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
 
 	select {
 	case osSignal := <-interrupt:
-		config.Logger.SubMsg.Error().Str("signal", osSignal.String()).Msg("Received interrupt")
+		config.Logger.SubMsg.Error().Str("signal", osSignal.String()).Msg("received interrupt")
 	case err := <-shutdown:
-		config.Logger.SubMsg.Err(err).Msg("Received shutdown message")
+		config.Logger.SubMsg.Err(err).Msg("received shutdown message")
 	}
 
 	timeout, cancelFunc := context.WithTimeout(context.Background(), timeOutDuration)
 	defer cancelFunc()
 
-	config.Logger.SubMsg.Debug().Dur("timeout", timeOutDuration).Msg("Delay is set")
+	config.Logger.SubMsg.Debug().Dur("timeout", timeOutDuration).Msg("delay is set")
 	err = webServer.Shutdown(timeout)
-	config.Logger.SubMsg.Debug().Msg("Delayed Shutdown is executed")
+	config.Logger.SubMsg.Debug().Msg("delayed shutdown is executed")
 	return err
 }
