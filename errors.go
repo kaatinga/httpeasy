@@ -5,7 +5,6 @@ import (
 )
 
 const (
-	errNoDBConnection cer.Error = "the db connection is nil"
 	errValidationError cer.Error = "validation failed"
 )
 
