@@ -178,8 +178,8 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 	select {
 	case osSignal := <-interrupt:
 		config.Logger.SubMsg.Error().Str("signal", osSignal.String()).Msg("received interrupt")
-	case err := <-shutdown:
-		config.Logger.SubMsg.Err(err).Msg("received shutdown message")
+	case shutdownErr := <-shutdown:
+		config.Logger.SubMsg.Err(shutdownErr).Msg("received shutdown message")
 	}
 
 	timeout, cancelFunc := context.WithTimeout(context.Background(), timeOutDuration)
