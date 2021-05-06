@@ -58,10 +58,19 @@ var (
 	}
 
 	devMode = Config{
-		ProductionMode: false,
 		HTTP: HTTP{
 			Port: 8089,
 		},
+	}
+
+	sslForgotten = Config{
+		ProductionMode: true,
+		HTTP:           HTTP{Port: 8089},
+	}
+
+	dbForgotten = Config{
+		HasDB: true,
+		HTTP:  HTTP{Port: 8089},
 	}
 )
 
@@ -78,6 +87,8 @@ func TestHTTP_check(t *testing.T) {
 		{"Port is too big", portTooBig, errValidationError},
 		{"bad Email", badEmail, errValidationError},
 		{"bad Domain", badDomain, errValidationError},
+		{"ssl forgotten", sslForgotten, errValidationError},
+		{"db forgotten", dbForgotten, errValidationError},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
