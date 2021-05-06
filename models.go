@@ -43,7 +43,17 @@ type SSL struct {
 }
 
 func (config *Config) SetEmail(email string) {
+	if config.SSL == nil {
+		config.SSL = new(SSL)
+	}
 	config.SSL.Email = email
+}
+
+func (config *Config) SetDomain(domain string) {
+	if config.SSL == nil {
+		config.SSL = new(SSL)
+	}
+	config.SSL.Domain = domain
 }
 
 func (config *Config) SetProductionMode() {
@@ -54,10 +64,6 @@ func (config *Config) SetPort(port uint16) {
 	config.Port = port
 }
 
-func (config *Config) SetDomain(domain string) {
-	config.SSL.Domain = domain
-}
-
 func (config *Config) SetDBMode() {
 	config.HasDB = true
 }
@@ -66,14 +72,9 @@ func (config *Config) SetDBMode() {
 func (config *Config) check() error {
 
 	v := validator.New()
-
 	err := v.Struct(config)
 	if err != nil {
 		return validationError(err.Error())
-	}
-
-	if config.HasDB && config.DB == nil {
-		return errNoDBConnection
 	}
 
 	return nil
@@ -108,7 +109,7 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 
 	// enable handlers inside SetUpHandlers function
 	handlers(webServer.Handler.(*httprouter.Router), config.DB)
-	config.Logger.SubMsg.Info().Msg("Handlers have been announced")
+	config.Logger.SubMsg.Info().Msg("handlers have been announced")
 
 	// shutdown is a special channel to handle errors
 	shutdown := make(chan error, 2)
