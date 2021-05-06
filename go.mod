@@ -16,3 +16,7 @@ require (
 	golang.org/x/sys v0.0.0-20210503173754-0981d6026fa6 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
 )
+
+// a patch to work with boolean values while validating
+// https://github.com/go-playground/validator/issues/683
+replace github.com/go-playground/validator/v10 => github.com/zane-deg/validator/v10 v10.5.1-0.20210416224312-08356f8539dc
