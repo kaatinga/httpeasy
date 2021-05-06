@@ -95,10 +95,9 @@ func (config *Config) newWebService() http.Server {
 // Launch enables the configured web service with the handlers that
 // announced in a function matched with SetUpHandlers type.
 func (config *Config) Launch(handlers SetUpHandlers) error {
-	var err error
 
 	// Configuration Validation
-	err = config.check()
+	err := config.check()
 	if err != nil {
 		return err
 	}
@@ -134,7 +133,7 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 
 		// Config server to redirect
 		go func() {
-			err := http.ListenAndServe(
+			funcErr := http.ListenAndServe(
 				":http",
 				certManager.HTTPHandler(
 
@@ -144,18 +143,18 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 						http.StatusPermanentRedirect),
 				),
 			)
-			if err != nil {
+			if funcErr != nil {
 				config.Logger.SubMsg.Print("redirect to http failed")
-				shutdown <- err
+				shutdown <- funcErr
 				close(shutdown)
 			}
 		}()
 
 		// HTTPS server to handle the service
 		go func() {
-			err := webServer.ListenAndServeTLS("", "")
-			if err != nil {
-				shutdown <- err
+			funcErr := webServer.ListenAndServeTLS("", "")
+			if funcErr != nil {
+				shutdown <- funcErr
 				close(shutdown)
 			}
 		}()
@@ -163,9 +162,9 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 		config.Logger.SubMsg.Warn().Msg("development mode is enabled")
 
 		go func() {
-			err := webServer.ListenAndServe()
-			if err != nil {
-				shutdown <- err
+			funcErr := webServer.ListenAndServe()
+			if funcErr != nil {
+				shutdown <- funcErr
 				close(shutdown)
 			}
 		}()
