@@ -90,6 +90,8 @@ func TestHTTP_check(t *testing.T) {
 		{"ssl forgotten", sslForgotten, errValidationError},
 		{"db forgotten", dbForgotten, errValidationError},
 	}
+
+	// nolint
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.fields.check()
