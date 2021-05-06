@@ -129,6 +129,7 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 
 		webServer.TLSConfig = &tls.Config{
 			GetCertificate: certManager.GetCertificate,
+			MinVersion: tls.VersionTLS11,
 		}
 
 		// Config server to redirect
