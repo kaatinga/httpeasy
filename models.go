@@ -186,7 +186,7 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 	timeout, cancelFunc := context.WithTimeout(context.Background(), timeOutDuration)
 	defer cancelFunc()
 
-	config.Logger.SubMsg.Debug().Dur("timeout", timeOutDuration).Msg("delay is set")
+	config.Logger.SubMsg.Debug().Str("timeout", timeOutDuration.String()).Msg("delay is set")
 	err = webServer.Shutdown(timeout)
 	config.Logger.SubMsg.Debug().Msg("delayed shutdown is executed")
 	return err
