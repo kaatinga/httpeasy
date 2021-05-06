@@ -145,7 +145,7 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 				),
 			)
 			if funcErr != nil {
-				config.Logger.SubMsg.Print("redirect to http failed")
+				config.Logger.SubMsg.Info().Msg("redirect to http failed")
 				shutdown <- funcErr
 				close(shutdown)
 			}
