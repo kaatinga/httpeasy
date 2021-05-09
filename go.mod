@@ -12,7 +12,7 @@ require (
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/rs/zerolog v1.21.0 // indirect
 	golang.org/x/crypto v0.0.0-20210506145944-38f3c27a63bf
-	golang.org/x/net v0.0.0-20210505024714-0287a6fb4125 // indirect
-	golang.org/x/sys v0.0.0-20210507014357-30e306a8bba5 // indirect
+	golang.org/x/net v0.0.0-20210508051633-16afe75a6701 // indirect
+	golang.org/x/sys v0.0.0-20210507161434-a76c4d0a0096 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
 )
