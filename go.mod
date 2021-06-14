@@ -6,7 +6,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-playground/validator/v10 v10.6.1
 	github.com/julienschmidt/httprouter v1.3.0
-	github.com/kaatinga/assets v1.0.12
+	github.com/kaatinga/assets v1.1.0
 	github.com/kaatinga/bufferedlogger v0.0.0-20200923064419-b10980e6158e
 	github.com/kaatinga/const-errs v1.0.0
 	github.com/leodido/go-urn v1.2.1 // indirect

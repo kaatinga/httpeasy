@@ -14,8 +14,8 @@ github.com/go-playground/validator/v10 v10.6.1/go.mod h1:xm76BBt941f7yWdGnI2DVPF
 github.com/godbus/dbus/v5 v5.0.4/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
 github.com/julienschmidt/httprouter v1.3.0 h1:U0609e9tgbseu3rBINet9P48AI/D3oJs4dN7jwJOQ1U=
 github.com/julienschmidt/httprouter v1.3.0/go.mod h1:JR6WtHb+2LUe8TCKY3cZOxFyyO8IZAc4RVcycCCAKdM=
-github.com/kaatinga/assets v1.0.12 h1:4rob2FmFWlwerHmHRWOojG7bSGKyTid2WYN4uumjIw4=
-github.com/kaatinga/assets v1.0.12/go.mod h1:PCWy68NCavR/bBE38zIvQnoYimdNZiKojhUP2/bWP6M=
+github.com/kaatinga/assets v1.1.0 h1:ZqOgdswJboZxGowaOgdTEs5CpRofLZmcM5A3Tkr10Us=
+github.com/kaatinga/assets v1.1.0/go.mod h1:PCWy68NCavR/bBE38zIvQnoYimdNZiKojhUP2/bWP6M=
 github.com/kaatinga/bufferedlogger v0.0.0-20200923064419-b10980e6158e h1:cu1M3yzkgHXM3UCBuw8M6/p4fKZUwEIJR+KmjbNfjl4=
 github.com/kaatinga/bufferedlogger v0.0.0-20200923064419-b10980e6158e/go.mod h1:ntHBv13Vbud7woT/ZpR8N4WtAKiDk3WvzJNKIWrVr68=
 github.com/kaatinga/const-errs v1.0.0 h1:SLGCWZcfqXeRowK75riH1uhUEmyxelZ9ZGaxK33Pa3M=
