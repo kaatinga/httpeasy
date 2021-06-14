@@ -1,4 +1,4 @@
-package QuickHTTPServerLauncher
+package httpeasy
 
 import (
 	cer "github.com/kaatinga/const-errs"

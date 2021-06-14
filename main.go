@@ -1,4 +1,4 @@
-package QuickHTTPServerLauncher
+package httpeasy
 
 import (
 	"github.com/kaatinga/bufferedlogger"
