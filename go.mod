@@ -10,6 +10,7 @@ require (
 	github.com/kaatinga/bufferedlogger v0.0.0-20200923064419-b10980e6158e
 	github.com/kaatinga/const-errs v1.0.0
 	github.com/leodido/go-urn v1.2.1 // indirect
+	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.23.0 // indirect
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
 	golang.org/x/net v0.0.0-20210610132358-84b48f89b13b // indirect
