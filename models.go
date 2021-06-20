@@ -24,8 +24,8 @@ var timeOutDuration = 5 * time.Second
 type SetUpHandlers func(r *httprouter.Router, db *sql.DB)
 
 type Config struct {
-	DB             *sql.DB `validate:"required_if=HasDB true"`
-	Logger         *bufferedlogger.Logger
+	DB             *sql.DB `omit:""`
+	Logger         *bufferedlogger.Logger `omit:""`
 	ProductionMode bool `env:"PROD"`
 	HasDB          bool `env:"HAS_DB"`
 	HTTP
@@ -58,7 +58,7 @@ func (config *Config) newWebService() http.Server {
 func (config *Config) Launch(handlers SetUpHandlers) error {
 
 	// Launching
-	config.Logger.Title.Info().Uint16("Port", config.Port).Msg("launching the service")
+	config.Logger.Title.Info().Uint16("port", config.HTTP.Port).Msg("launching the service")
 	webServer := config.newWebService()
 
 	// enable handlers inside SetUpHandlers function
