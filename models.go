@@ -29,7 +29,7 @@ type Config struct {
 	DB             *sql.DB `validate:"required_if=HasDB true"`
 	Logger         *bufferedlogger.Logger
 	ProductionMode bool `env:"PROD"`
-	HasDB          bool `env:"HasDB"`
+	HasDB          bool `env:"HAS_DB"`
 	HTTP
 	SSL *SSL `validate:"required_if=ProductionMode true"`
 }
