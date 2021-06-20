@@ -26,47 +26,21 @@ var timeOutDuration = 5 * time.Second
 type SetUpHandlers func(r *httprouter.Router, db *sql.DB)
 
 type Config struct {
-	DB     *sql.DB `validate:"required_if=HasDB true"`
-	Logger *bufferedlogger.Logger
-	ProductionMode bool
-	HasDB          bool
+	DB             *sql.DB `validate:"required_if=HasDB true"`
+	Logger         *bufferedlogger.Logger
+	ProductionMode bool `env:"PROD"`
+	HasDB          bool `env:"HasDB"`
 	HTTP
 	SSL *SSL `validate:"required_if=ProductionMode true"`
 }
 
 type HTTP struct {
-	Port           uint16 `env:"PORT" validate:"min=80,max=9999"`
+	Port uint16 `env:"PORT" validate:"min=80,max=9999"`
 }
 
 type SSL struct {
 	Domain string `env:"DOMAIN" validate:"fqdn"`
 	Email  string `env:"EMAIL" validate:"email"`
-}
-
-func (config *Config) SetEmail(email string) {
-	if config.SSL == nil {
-		config.SSL = new(SSL)
-	}
-	config.SSL.Email = email
-}
-
-func (config *Config) SetDomain(domain string) {
-	if config.SSL == nil {
-		config.SSL = new(SSL)
-	}
-	config.SSL.Domain = domain
-}
-
-func (config *Config) SetProductionMode() {
-	config.ProductionMode = true
-}
-
-func (config *Config) SetPort(port uint16) {
-	config.Port = port
-}
-
-func (config *Config) SetDBMode() {
-	config.HasDB = true
 }
 
 // check validates the web service configuration.
@@ -130,7 +104,7 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 
 		webServer.TLSConfig = &tls.Config{
 			GetCertificate: certManager.GetCertificate,
-			MinVersion: tls.VersionTLS12,
+			MinVersion:     tls.VersionTLS12,
 		}
 
 		// Config server to redirect
