@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"github.com/julienschmidt/httprouter"
-	"github.com/pkg/errors"
 	"net"
 	"net/http"
 	"os"
@@ -14,7 +13,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/kaatinga/assets"
 	"github.com/kaatinga/bufferedlogger"
 	"golang.org/x/crypto/acme/autocert"
@@ -43,18 +41,6 @@ type SSL struct {
 	Email  string `env:"EMAIL" validate:"email"`
 }
 
-// check validates the web service configuration.
-func (config *Config) check() error {
-
-	v := validator.New()
-	err := v.Struct(config)
-	if err != nil {
-		return errors.Wrap(err, errValidationError.Error())
-	}
-
-	return nil
-}
-
 // newWebService creates new http router and creates http.Server structure
 // with the created router inside.
 func (config *Config) newWebService() http.Server {
@@ -70,12 +56,6 @@ func (config *Config) newWebService() http.Server {
 // Launch enables the configured web service with the handlers that
 // announced in a function matched with SetUpHandlers type.
 func (config *Config) Launch(handlers SetUpHandlers) error {
-
-	// Configuration Validation
-	err := config.check()
-	if err != nil {
-		return err
-	}
 
 	// Launching
 	config.Logger.Title.Info().Uint16("Port", config.Port).Msg("launching the service")
@@ -162,7 +142,7 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 	defer cancelFunc()
 
 	config.Logger.SubMsg.Debug().Str("timeout", timeOutDuration.String()).Msg("delay is set")
-	err = webServer.Shutdown(timeout)
+	err := webServer.Shutdown(timeout)
 	config.Logger.SubMsg.Debug().Msg("delayed shutdown is executed")
 	return err
 }
