@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"github.com/julienschmidt/httprouter"
+	"github.com/pkg/errors"
 	"net"
 	"net/http"
 	"os"
@@ -74,7 +75,7 @@ func (config *Config) check() error {
 	v := validator.New()
 	err := v.Struct(config)
 	if err != nil {
-		return validationError(err.Error())
+		return errors.Wrap(err, errValidationError.Error())
 	}
 
 	return nil
