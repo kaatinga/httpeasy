@@ -1,11 +1,5 @@
 package httpeasy
 
-import (
-	"errors"
-	"github.com/davecgh/go-spew/spew"
-	"testing"
-)
-
 var (
 	validConfig = Config{
 		SSL: &SSL{Email: "info@yandex.ru",
@@ -73,35 +67,3 @@ var (
 		HTTP:  HTTP{Port: 8089},
 	}
 )
-
-func TestHTTP_check(t *testing.T) {
-
-	tests := []struct {
-		name    string
-		fields  Config
-		wantErr error
-	}{
-		{"ok1", devMode, nil},
-		{"ok2", validConfig, nil},
-		{"Port is too small", portTooSmall, errValidationError},
-		{"Port is too big", portTooBig, errValidationError},
-		{"bad Email", badEmail, errValidationError},
-		{"bad Domain", badDomain, errValidationError},
-		{"ssl forgotten", sslForgotten, errValidationError},
-		{"db forgotten", dbForgotten, errValidationError},
-	}
-
-	// nolint
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := tt.fields.check()
-			if err != nil {
-				t.Log(err)
-			}
-			if !errors.Is(err, tt.wantErr) {
-				spew.Dump(tt.fields)
-				t.Errorf("check() error\nhave %v\nwant %v\n", err, tt.wantErr)
-			}
-		})
-	}
-}
