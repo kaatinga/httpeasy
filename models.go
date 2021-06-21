@@ -24,8 +24,8 @@ var timeOutDuration = 5 * time.Second
 type SetUpHandlers func(r *httprouter.Router, db *sql.DB)
 
 type Config struct {
-	DB             *sql.DB `omit:""`
-	Logger         *bufferedlogger.Logger `omit:""`
+	DB             *sql.DB `env:"-"`
+	Logger         *bufferedlogger.Logger `env:"-"`
 	ProductionMode bool `env:"PROD"`
 	HasDB          bool `env:"HAS_DB"`
 	HTTP
