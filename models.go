@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
@@ -23,6 +22,8 @@ var timeOutDuration = 5 * time.Second
 // SetUpHandlers type to announce handlers.
 type SetUpHandlers func(r *httprouter.Router, db *sql.DB)
 
+// Config - http service configuration compatible to settings package.
+// https://github.com/kaatinga/settings
 type Config struct {
 	DB             *sql.DB `env:"-"`
 	Logger         *bufferedlogger.Logger `env:"-"`
@@ -95,12 +96,12 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 
 					// Redirect from http to https
 					http.RedirectHandler(
-						strings.Join([]string{"https://", config.SSL.Domain}, ""),
+						"https://" + config.SSL.Domain,
 						http.StatusPermanentRedirect),
 				),
 			)
 			if funcErr != nil {
-				config.Logger.SubMsg.Info().Msg("redirect to http failed")
+				config.Logger.SubMsg.Info().Msg("redirect to https failed")
 				shutdown <- funcErr
 				close(shutdown)
 			}
