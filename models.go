@@ -25,12 +25,16 @@ type SetUpHandlers func(r *httprouter.Router, db *sql.DB)
 // Config - http service configuration compatible to settings package.
 // https://github.com/kaatinga/settings
 type Config struct {
-	DB             *sql.DB `env:"-"`
+	DB             *sql.DB                `env:"-"`
 	Logger         *bufferedlogger.Logger `env:"-"`
-	ProductionMode bool `env:"PROD"`
-	HasDB          bool `env:"HAS_DB"`
+	ProductionMode bool                   `env:"PROD"`
+	HasDB          bool                   `env:"HAS_DB"`
 	HTTP
 	SSL *SSL `validate:"required_if=ProductionMode true"`
+
+	ReadTimeout       time.Duration
+	ReadHeaderTimeout time.Duration
+	WriteTimeout      time.Duration
 }
 
 type HTTP struct {
@@ -48,9 +52,9 @@ func (config *Config) newWebService() http.Server {
 	return http.Server{
 		Addr:              net.JoinHostPort("", assets.Uint162String(config.Port)),
 		Handler:           httprouter.New(),
-		ReadTimeout:       1 * time.Minute,
-		ReadHeaderTimeout: 15 * time.Second,
-		WriteTimeout:      1 * time.Minute,
+		ReadTimeout:       config.ReadTimeout,
+		ReadHeaderTimeout: config.ReadHeaderTimeout,
+		WriteTimeout:      config.WriteTimeout,
 	}
 }
 
@@ -96,7 +100,7 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 
 					// Redirect from http to https
 					http.RedirectHandler(
-						"https://" + config.SSL.Domain,
+						"https://"+config.SSL.Domain,
 						http.StatusPermanentRedirect),
 				),
 			)
