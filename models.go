@@ -32,9 +32,9 @@ type Config struct {
 	HTTP
 	SSL *SSL `validate:"required_if=ProductionMode true"`
 
-	ReadTimeout       time.Duration
-	ReadHeaderTimeout time.Duration
-	WriteTimeout      time.Duration
+	ReadTimeout       time.Duration `env:"READ_TIMEOUT" default:"1m"`
+	ReadHeaderTimeout time.Duration `env:"READ_HEADER_TIMEOUT" default:"15s"`
+	WriteTimeout      time.Duration `env:"WRITE_TIMEOUT" default:"1m"`
 }
 
 type HTTP struct {
