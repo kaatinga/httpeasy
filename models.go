@@ -48,7 +48,10 @@ type SSL struct {
 
 // newWebService creates new http router and creates http.Server structure
 // with the created router inside.
-func (config *Config) newWebService() http.Server {
+func (config *Config) newWebService(logger *prettylogger.Logger) http.Server {
+
+	config.Logger = logger
+
 	return http.Server{
 		Addr:              net.JoinHostPort("", assets.Uint162String(config.Port)),
 		Handler:           httprouter.New(),
@@ -60,11 +63,11 @@ func (config *Config) newWebService() http.Server {
 
 // Launch enables the configured web service with the handlers that
 // announced in a function matched with SetUpHandlers type.
-func (config *Config) Launch(handlers SetUpHandlers) error {
+func (config *Config) Launch(handlers SetUpHandlers, logger *prettylogger.Logger) error {
 
 	// Launching
+	webServer := config.newWebService(logger)
 	config.Logger.Title.Info().Uint16("port", config.HTTP.Port).Msg("launching the service")
-	webServer := config.newWebService()
 
 	// enable handlers inside SetUpHandlers function
 	handlers(webServer.Handler.(*httprouter.Router), config.DB)
