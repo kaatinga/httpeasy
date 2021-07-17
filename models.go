@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/kaatinga/assets"
-	"github.com/kaatinga/bufferedlogger"
+	"github.com/kaatinga/prettylogger"
 	"golang.org/x/crypto/acme/autocert"
 )
 
@@ -25,10 +25,10 @@ type SetUpHandlers func(r *httprouter.Router, db *sql.DB)
 // Config - http service configuration compatible to settings package.
 // https://github.com/kaatinga/settings
 type Config struct {
-	DB             *sql.DB                `env:"-"`
-	Logger         *bufferedlogger.Logger `env:"-"`
-	ProductionMode bool                   `env:"PROD"`
-	HasDB          bool                   `env:"HAS_DB"`
+	DB             *sql.DB              `env:"-"`
+	Logger         *prettylogger.Logger `env:"-"`
+	ProductionMode bool                 `env:"PROD"`
+	HasDB          bool                 `env:"HAS_DB"`
 	HTTP
 	SSL *SSL `validate:"required_if=ProductionMode true"`
 
