@@ -2,6 +2,8 @@ package httpeasy
 
 import (
 	"github.com/kaatinga/assets"
+	"github.com/kaatinga/prettylogger"
+	"github.com/rs/zerolog"
 	"strings"
 	"testing"
 	"time"
@@ -77,7 +79,7 @@ var (
 func TestConfig_newWebService(t *testing.T) {
 
 	t.Run("valid config", func(t *testing.T) {
-		httpServer := validConfig.newWebService()
+		httpServer := validConfig.newWebService(prettylogger.InitLogger(zerolog.InfoLevel, true, true))
 		if !strings.Contains(httpServer.Addr, assets.Uint162String(validConfig.Port)) {
 			t.Error("incorrect http port")
 		}
