@@ -46,8 +46,7 @@ type SSL struct {
 	Email  string `env:"EMAIL" validate:"email"`
 }
 
-// newWebService creates new http router and creates http.Server structure
-// with the created router inside.
+// newWebService creates http.Server structure with router inside.
 func (config *Config) newWebService(logger *prettylogger.Logger) http.Server {
 
 	config.Logger = logger
@@ -64,6 +63,7 @@ func (config *Config) newWebService(logger *prettylogger.Logger) http.Server {
 // Launch enables the configured web service with the handlers that
 // announced in a function matched with SetUpHandlers type.
 func (config *Config) Launch(handlers SetUpHandlers, logger *prettylogger.Logger) error {
+	defer config.Logger.SubMsg.Debug().Msg("delayed shutdown is executed")
 
 	// Launching
 	webServer := config.newWebService(logger)
@@ -150,7 +150,5 @@ func (config *Config) Launch(handlers SetUpHandlers, logger *prettylogger.Logger
 	defer cancelFunc()
 
 	config.Logger.SubMsg.Debug().Str("timeout", timeOutDuration.String()).Msg("delay is set")
-	err := webServer.Shutdown(timeout)
-	config.Logger.SubMsg.Debug().Msg("delayed shutdown is executed")
-	return err
+	return webServer.Shutdown(timeout)
 }

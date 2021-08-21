@@ -5,3 +5,35 @@
 
 # httpeasy
 The package provides everything to create a simple web service. You merely have to announce handlers.
+
+## 1. Installation
+
+Use go get.
+
+	go get github.com/kaatinga/httpeasy
+
+Then import the validator package into your own code.
+
+	import "github.com/kaatinga/httpeasy"
+
+## 2. Usage
+
+Prepare a function that complies with `SetUpHandlers` type. The function should contain some routes, for example.
+
+    func SetUpHandlers(r *httprouter.Router, _ *sql.DB) {
+	    r.GET("/", Welcome)
+    }
+
+The package contains a ready config model, set field values in that structure, easies way is to use [settings](https://github.com/kaatinga/settings) package:
+
+    err := settings.LoadSettings(&config.Config)
+    if err != nil {
+        ...
+    }
+
+Run your server:
+
+    err = config.Config.Launch(SetUpHandlers, logger)
+    if err != nil {
+        ...
+    }
