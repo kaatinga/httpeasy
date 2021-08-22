@@ -4,6 +4,8 @@ github.com/julienschmidt/httprouter v1.3.0 h1:U0609e9tgbseu3rBINet9P48AI/D3oJs4d
 github.com/julienschmidt/httprouter v1.3.0/go.mod h1:JR6WtHb+2LUe8TCKY3cZOxFyyO8IZAc4RVcycCCAKdM=
 github.com/kaatinga/assets v1.1.1 h1:BJ3vv2Jlg9o2BnUEwn5gFJhPopNOrXSt+uVKlk6wVZM=
 github.com/kaatinga/assets v1.1.1/go.mod h1:PCWy68NCavR/bBE38zIvQnoYimdNZiKojhUP2/bWP6M=
+github.com/kaatinga/const-errs v1.0.0 h1:SLGCWZcfqXeRowK75riH1uhUEmyxelZ9ZGaxK33Pa3M=
+github.com/kaatinga/const-errs v1.0.0/go.mod h1:v4aBzObpEAb/ha35dIgohIFD8KCRHmPt76v8xu2v2zs=
 github.com/kaatinga/prettylogger v0.0.0-20210717192826-69500d3a503c h1:o1JuSg62707mzZwIXAJsMgtiT67XQzraUaKgaPiN6sI=
 github.com/kaatinga/prettylogger v0.0.0-20210717192826-69500d3a503c/go.mod h1:OSeYoEjHO28TwiHF9dpf3anQ4OkcgU473T2nBfq405U=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
