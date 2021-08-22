@@ -3,7 +3,6 @@ package httpeasy
 import (
 	"context"
 	"crypto/tls"
-	"database/sql"
 	"github.com/julienschmidt/httprouter"
 	"net"
 	"net/http"
@@ -20,15 +19,13 @@ import (
 var timeOutDuration = 5 * time.Second
 
 // SetUpHandlers type to announce handlers.
-type SetUpHandlers func(r *httprouter.Router, db *sql.DB)
+type SetUpHandlers func(r *httprouter.Router)
 
 // Config - http service configuration compatible to settings package.
 // https://github.com/kaatinga/settings
 type Config struct {
-	DB             *sql.DB              `env:"-"`
 	Logger         *prettylogger.Logger `env:"-"`
 	ProductionMode bool                 `env:"PROD"`
-	HasDB          bool                 `env:"HAS_DB"`
 	HTTP
 	SSL *SSL `validate:"required_if=ProductionMode true"`
 
@@ -47,9 +44,7 @@ type SSL struct {
 }
 
 // newWebService creates http.Server structure with router inside.
-func (config *Config) newWebService(logger *prettylogger.Logger) http.Server {
-
-	config.Logger = logger
+func (config *Config) newWebService() http.Server {
 
 	return http.Server{
 		Addr:              net.JoinHostPort("", assets.Uint162String(config.Port)),
@@ -62,15 +57,23 @@ func (config *Config) newWebService(logger *prettylogger.Logger) http.Server {
 
 // Launch enables the configured web service with the handlers that
 // announced in a function matched with SetUpHandlers type.
-func (config *Config) Launch(handlers SetUpHandlers, logger *prettylogger.Logger) error {
+func (config *Config) Launch(handlers SetUpHandlers) error {
+	if config.Logger == nil {
+		return ErrLoggerIsNotEnabled
+	}
+
 	defer config.Logger.SubMsg.Debug().Msg("delayed shutdown is executed")
 
 	// Launching
-	webServer := config.newWebService(logger)
+	webServer := config.newWebService()
 	config.Logger.Title.Info().Uint16("port", config.HTTP.Port).Msg("launching the service")
 
 	// enable handlers inside SetUpHandlers function
-	handlers(webServer.Handler.(*httprouter.Router), config.DB)
+	router, ok := webServer.Handler.(*httprouter.Router)
+	if !ok {
+		return ErrRouterTypeIsIncorrect
+	}
+	handlers(router)
 	config.Logger.SubMsg.Info().Msg("handlers have been announced")
 
 	// shutdown is a special channel to handle errors
