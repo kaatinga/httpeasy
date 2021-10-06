@@ -18,9 +18,9 @@ Then import the validator package into your own code.
 
 ## 2. Usage
 
-Prepare a function that complies with `SetUpHandlers` type. The function should contain some routes, for example.
+Prepare a function that complies with `SetUpHandlers` type. The function should contain some routes, for example:
 
-    func SetUpHandlers(r *httprouter.Router, _ *sql.DB) {
+    func SetUpHandlers(r *httprouter.Router) {
 	    r.GET("/", Welcome)
     }
 
