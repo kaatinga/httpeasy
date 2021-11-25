@@ -35,7 +35,7 @@ type Config struct {
 }
 
 type HTTP struct {
-	Port uint16 `env:"PORT" validate:"min=80,max=9999"`
+	Port uint16 `env:"PORT" validate:"min=80,max=99999"`
 }
 
 type SSL struct {
