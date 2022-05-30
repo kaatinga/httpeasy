@@ -16,8 +16,8 @@ run:
   tests: true
 
   # list of build tags, all linters use it. Default is empty list.
-#  build-tags:
-#    - mytag
+  #  build-tags:
+  #    - mytag
 
   # which dirs to skip: issues from them won't be reported;
   # can use regexp here: generated.*, regexp is applied on full path;
@@ -109,11 +109,11 @@ linters-settings:
     # [deprecated] comma-separated list of pairs of the form pkg:regex
     # the regex is used to ignore names within pkg. (default "fmt:.*").
     # see https://github.com/kisielk/errcheck#the-deprecated-method for details
-#    ignore: fmt:.*,io/ioutil:^Read.*
+    #    ignore: fmt:.*,io/ioutil:^Read.*
 
     # path to a file containing a list of functions to exclude from checking
     # see https://github.com/kisielk/errcheck#excluding-functions for details
-#    exclude: /path/to/file.txt
+  #    exclude: /path/to/file.txt
 
   errorlint:
     # Report non-wrapping error creation using fmt.Errorf
@@ -147,11 +147,11 @@ linters-settings:
     lines: 60
     statements: 40
 
-#  gci:
+    #  gci:
     # put imports beginning with prefix after 3rd-party packages;
     # only support one prefix
     # if not set, use goimports.local-prefixes
-#    local-prefixes: github.com/org/project
+  #    local-prefixes: github.com/org/project
 
   gocognit:
     # minimal code complexity to report, 30 by default (but we recommend 10-20)
@@ -172,8 +172,8 @@ linters-settings:
     # See https://go-critic.github.io/overview#checks-overview
     # To check which checks are enabled run `GL_DEBUG=gocritic golangci-lint run`
     # By default list of stable checks is used.
-#    enabled-checks:
-#      - rangeValCopy
+    #    enabled-checks:
+    #      - rangeValCopy
 
     # Which checks should be disabled; can't be combined with 'enabled-checks'; default is empty
     disabled-checks:
@@ -212,9 +212,9 @@ linters-settings:
         sizeThreshold: 32
         # whether to check test functions (default true)
         skipTestFuncs: true
-#      ruleguard:
+        #      ruleguard:
         # path to a gorules file for the ruleguard checker
-#        rules: ''
+      #        rules: ''
       truncateCmp:
         # whether to skip int/uint/uintptr types (default true)
         skipArchDependent: true
@@ -256,15 +256,15 @@ linters-settings:
     # by default
     extra-rules: false
 
-#  goheader:
-#    values:
-#      const:
+      #  goheader:
+      #    values:
+      #      const:
       # define here const type values in format k:v, for example:
       # COMPANY: MY COMPANY
-#      regexp:
+      #      regexp:
       # define here regexp type values, for example
-      # AUTHOR: .*@mycompany\.com
-#    template: # |-
+    # AUTHOR: .*@mycompany\.com
+    #    template: # |-
     # put here copyright header template for source code files, for example:
     # Note: {{ YEAR }} is a builtin value that returns the year relative to the current machine time.
     #
@@ -282,33 +282,33 @@ linters-settings:
     # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     # See the License for the specific language governing permissions and
     # limitations under the License.
-#    template-path:
+    #    template-path:
     # also as alternative of directive 'template' you may put the path to file with the template source
 
-#  goimports:
+    #  goimports:
     # put imports beginning with prefix after 3rd-party packages;
     # it's a comma-separated list of prefixes
-#    local-prefixes: github.com/org/project
+  #    local-prefixes: github.com/org/project
 
   golint:
     # minimal confidence for issues, default is 0.8
     min-confidence: 0.8
 
-#  gomnd:
-#    settings:
-#      mnd:
-        # the list of enabled checks, see https://github.com/tommy-muehle/go-mnd/#checks for description.
-#        checks: argument,case,condition,operation,return,assign
-        # ignored-numbers: 1000
-        # ignored-files: magic_.*.go
-        # ignored-functions: math.*
+      #  gomnd:
+      #    settings:
+      #      mnd:
+      # the list of enabled checks, see https://github.com/tommy-muehle/go-mnd/#checks for description.
+      #        checks: argument,case,condition,operation,return,assign
+      # ignored-numbers: 1000
+      # ignored-files: magic_.*.go
+    # ignored-functions: math.*
 
   gomoddirectives:
     # Allow local `replace` directives. Default is false.
     replace-local: false
     # List of allowed `replace` directives. Default is empty.
-#    replace-allow-list:
-#      - launchpad.net/gocheck
+    #    replace-allow-list:
+    #      - launchpad.net/gocheck
     # Allow to not explain why the version has been retracted in the `retract` directives. Default is false.
     retract-allow-no-explanation: false
     # Forbid the use of the `exclude` directives. Default is false.
@@ -316,17 +316,17 @@ linters-settings:
 
   gomodguard:
     allowed:
-#      modules:                                                        # List of allowed modules
-      # - gopkg.in/yaml.v2
-#      domains:                                                        # List of allowed module domains
-      # - golang.org
+    #      modules:                                                        # List of allowed modules
+    # - gopkg.in/yaml.v2
+    #      domains:                                                        # List of allowed module domains
+    # - golang.org
     blocked:
-#      modules:                                                        # List of blocked modules
+      #      modules:                                                        # List of blocked modules
       # - github.com/uudashr/go-module:                             # Blocked module
       #     recommendations:                                        # Recommended modules that should be used instead (Optional)
       #       - golang.org/x/mod
       #     reason: "`mod` is the official go.mod parser library."  # Reason why the recommended module should be used (Optional)
-#      versions:                                                       # List of blocked module version constraints
+      #      versions:                                                       # List of blocked module version constraints
       # - github.com/mitchellh/go-homedir:                          # Blocked module with version constraint
       #     version: "< 1.1.0"                                      # Version constraint, see https://github.com/Masterminds/semver#basic-comparisons
       #     reason: "testing if blocked version constraint works."  # Reason why the version constraint exists. (Optional)
@@ -387,9 +387,9 @@ linters-settings:
     include-go-root: false
     packages:
       - github.com/sirupsen/logrus
-#    packages-with-error-message:
+      #    packages-with-error-message:
       # specify an error message to output when a blacklisted package is used
-#      - github.com/sirupsen/logrus: "logging is allowed only by logutils.Log"
+  #      - github.com/sirupsen/logrus: "logging is allowed only by logutils.Log"
 
   ifshort:
     # Maximum length of variable declaration measured in number of lines, after which linter won't suggest using short syntax.
@@ -472,7 +472,7 @@ linters-settings:
     # Disable to ensure that nolint directives don't have a leading space. Default is true.
     allow-leading-space: true
     # Exclude following linters from requiring an explanation.  Default is [].
-    allow-no-explanation: []
+    allow-no-explanation: [ ]
     # Enable to require an explanation of nonzero length after each nolint directive. Default is false.
     require-explanation: true
     # Enable to require nolint directives to mention the specific linter being suppressed. Default is false.
@@ -481,7 +481,7 @@ linters-settings:
   rowserrcheck:
     packages:
       - github.com/jmoiron/sqlx
-#      -
+  #      -
   revive:
     # see https://github.com/mgechev/revive#available-rules for details.
     ignore-generated-header: true
@@ -575,16 +575,16 @@ linters-settings:
     force-short-decl-cuddling: false
     strict-append: true
 
-  # The custom section can be used to define linter plugins to be loaded at runtime.
-  # See README doc for more info.
-#  custom:
-    # Each custom linter should have a unique name.
-#    example:
+      # The custom section can be used to define linter plugins to be loaded at runtime.
+      # See README doc for more info.
+      #  custom:
+      # Each custom linter should have a unique name.
+      #    example:
       # The path to the plugin *.so. Can be absolute or local. Required for each custom linter
-#      path: /path/to/example.so
+      #      path: /path/to/example.so
       # The description of the linter. Optional, just for documentation purposes.
-#      description: This is an example usage of a plugin linter.
-      # Intended to point to the repo location of the linter. Optional, just for documentation purposes.
+      #      description: This is an example usage of a plugin linter.
+    # Intended to point to the repo location of the linter. Optional, just for documentation purposes.
 #      original-url: github.com/golangci/example-linter
 
 linters:
@@ -629,10 +629,10 @@ linters:
   new: false
 
   # Show only new issues created after git revision `REV`
-#  new-from-rev: REV
+  #  new-from-rev: REV
 
   # Show only new issues created in git patch with set file path.
-#  new-from-patch: path/to/patch/file
+  #  new-from-patch: path/to/patch/file
 
   # Fix found issues (if it's supported by the linter)
 #  fix: true
