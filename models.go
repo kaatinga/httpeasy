@@ -11,8 +11,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/kaatinga/assets"
 	"github.com/kaatinga/prettylogger"
+	"github.com/kaatinga/strconv"
 	"golang.org/x/crypto/acme/autocert"
 )
 
@@ -47,7 +47,7 @@ type SSL struct {
 func (config *Config) newWebService() http.Server {
 
 	return http.Server{
-		Addr:              net.JoinHostPort("", assets.Uint162String(config.Port)),
+		Addr:              net.JoinHostPort("", faststrconv.Uint162String(config.Port)),
 		Handler:           httprouter.New(),
 		ReadTimeout:       config.ReadTimeout,
 		ReadHeaderTimeout: config.ReadHeaderTimeout,

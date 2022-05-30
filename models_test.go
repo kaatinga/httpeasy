@@ -1,7 +1,7 @@
 package httpeasy
 
 import (
-	"github.com/kaatinga/assets"
+	"github.com/kaatinga/strconv"
 	"strings"
 	"testing"
 	"time"
@@ -12,9 +12,9 @@ var (
 		HTTP: HTTP{
 			Port: 8089,
 		},
-		ReadTimeout: 1 * time.Minute,
+		ReadTimeout:       1 * time.Minute,
 		ReadHeaderTimeout: 15 * time.Second,
-		WriteTimeout: 1 * time.Minute,
+		WriteTimeout:      1 * time.Minute,
 	}
 
 	//portTooSmall = Config{
@@ -77,7 +77,7 @@ func TestConfig_newWebService(t *testing.T) {
 
 	t.Run("valid config", func(t *testing.T) {
 		httpServer := validConfig.newWebService()
-		if !strings.Contains(httpServer.Addr, assets.Uint162String(validConfig.Port)) {
+		if !strings.Contains(httpServer.Addr, faststrconv.Uint162String(validConfig.Port)) {
 			t.Error("incorrect http port")
 		}
 
