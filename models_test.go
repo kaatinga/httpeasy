@@ -90,5 +90,4 @@ func TestConfig_newWebService(t *testing.T) {
 			t.Error("invalid read header timeout")
 		}
 	})
-
 }

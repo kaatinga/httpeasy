@@ -78,12 +78,12 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 
 		webServer.TLSConfig = &tls.Config{
 			GetCertificate: certManager.GetCertificate,
-			MinVersion:     tls.VersionTLS12,
+			MinVersion:     tls.VersionTLS13,
 		}
 
 		// Config server to redirect
 		go func() {
-			_ = http.ListenAndServe(
+			_ = http.ListenAndServe( //nolint:gosec
 				":http",
 				certManager.HTTPHandler(
 

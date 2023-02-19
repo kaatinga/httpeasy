@@ -2,7 +2,6 @@ package httpeasy
 
 import "github.com/julienschmidt/httprouter"
 
-
 type Adapter func(httprouter.Handle) httprouter.Handle
 
 // Adapt composes handlers chain end executes it.
