@@ -33,7 +33,7 @@ The package contains a ready config model, set field values in that structure, e
 
 Run your server:
 
-    err = config.Config.Launch(SetUpHandlers, logger)
+    err = config.Config.Launch(SetUpHandlers)
     if err != nil {
         ...
     }

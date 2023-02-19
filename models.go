@@ -3,7 +3,8 @@ package httpeasy
 import (
 	"context"
 	"crypto/tls"
-	"github.com/julienschmidt/httprouter"
+	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"os"
@@ -11,8 +12,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/kaatinga/prettylogger"
-	"github.com/kaatinga/strconv"
+	"github.com/julienschmidt/httprouter"
 	"golang.org/x/crypto/acme/autocert"
 )
 
@@ -24,18 +24,12 @@ type SetUpHandlers func(r *httprouter.Router)
 // Config - http service configuration compatible to settings package.
 // https://github.com/kaatinga/settings
 type Config struct {
-	Logger         *prettylogger.Logger `env:"-"`
-	ProductionMode bool                 `env:"PROD"`
-	HTTP
-	SSL *SSL `validate:"required_if=ProductionMode true"`
-
+	ProductionMode    bool          `env:"PROD"`
+	SSL               SSL           `validate:"required_if=ProductionMode true"`
+	Port              uint16        `env:"PORT" validate:"min=80,max=65535"`
 	ReadTimeout       time.Duration `env:"READ_TIMEOUT" default:"1m"`
 	ReadHeaderTimeout time.Duration `env:"READ_HEADER_TIMEOUT" default:"15s"`
 	WriteTimeout      time.Duration `env:"WRITE_TIMEOUT" default:"1m"`
-}
-
-type HTTP struct {
-	Port uint16 `env:"PORT" validate:"min=80,max=99999"`
 }
 
 type SSL struct {
@@ -45,9 +39,8 @@ type SSL struct {
 
 // newWebService creates http.Server structure with router inside.
 func (config *Config) newWebService() http.Server {
-
 	return http.Server{
-		Addr:              net.JoinHostPort("", faststrconv.Uint162String(config.Port)),
+		Addr:              net.JoinHostPort("", fmt.Sprintf("%d", config.Port)),
 		Handler:           httprouter.New(),
 		ReadTimeout:       config.ReadTimeout,
 		ReadHeaderTimeout: config.ReadHeaderTimeout,
@@ -58,30 +51,20 @@ func (config *Config) newWebService() http.Server {
 // Launch enables the configured web service with the handlers that
 // announced in a function matched with SetUpHandlers type.
 func (config *Config) Launch(handlers SetUpHandlers) error {
-	if config.Logger == nil {
-		return ErrLoggerIsNotEnabled
-	}
-
-	defer config.Logger.SubMsg.Debug().Msg("delayed shutdown is executed")
-
-	// Launching
 	webServer := config.newWebService()
-	config.Logger.Title.Info().Uint16("port", config.HTTP.Port).Msg("launching the service")
 
 	// enable handlers inside SetUpHandlers function
 	router, ok := webServer.Handler.(*httprouter.Router)
 	if !ok {
-		return ErrRouterTypeIsIncorrect
+		return errors.New("webServer.Handler is not a *httprouter.Router")
 	}
 	handlers(router)
-	config.Logger.SubMsg.Info().Msg("handlers have been announced")
 
 	// shutdown is a special channel to handle errors
-	shutdown := make(chan error, 2)
+	shutdown := make(chan error)
 
 	switch config.ProductionMode {
 	case true:
-		config.Logger.SubMsg.Info().Msg("production mode is enabled")
 		certManager := autocert.Manager{
 			Prompt: autocert.AcceptTOS,
 
@@ -100,7 +83,7 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 
 		// Config server to redirect
 		go func() {
-			funcErr := http.ListenAndServe(
+			_ = http.ListenAndServe(
 				":http",
 				certManager.HTTPHandler(
 
@@ -110,11 +93,6 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 						http.StatusPermanentRedirect),
 				),
 			)
-			if funcErr != nil {
-				config.Logger.SubMsg.Info().Msg("redirect to https failed")
-				shutdown <- funcErr
-				close(shutdown)
-			}
 		}()
 
 		// HTTPS server to handle the service
@@ -126,8 +104,6 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 			}
 		}()
 	default:
-		config.Logger.SubMsg.Warn().Msg("development mode is enabled")
-
 		go func() {
 			funcErr := webServer.ListenAndServe()
 			if funcErr != nil {
@@ -137,21 +113,20 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 		}()
 	}
 
-	config.Logger.SubMsg.Info().Msg("the service has been launched!")
-
-	interrupt := make(chan os.Signal, 1)
+	interrupt := make(chan os.Signal)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
 
+	var terminationSignal string
 	select {
 	case osSignal := <-interrupt:
-		config.Logger.SubMsg.Error().Str("signal", osSignal.String()).Msg("received interrupt")
-	case shutdownErr := <-shutdown:
-		config.Logger.SubMsg.Err(shutdownErr).Msg("received shutdown message")
+		terminationSignal = osSignal.String()
+	case err := <-shutdown:
+		terminationSignal = err.Error()
 	}
 
 	timeout, cancelFunc := context.WithTimeout(context.Background(), timeOutDuration)
 	defer cancelFunc()
 
-	config.Logger.SubMsg.Debug().Str("timeout", timeOutDuration.String()).Msg("delay is set")
-	return webServer.Shutdown(timeout)
+	err := webServer.Shutdown(timeout)
+	return fmt.Errorf("service stopped: %w, terminationSignal: %s", err, terminationSignal)
 }

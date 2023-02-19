@@ -1,7 +1,7 @@
 package httpeasy
 
 import (
-	"github.com/kaatinga/strconv"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -9,9 +9,7 @@ import (
 
 var (
 	validConfig = Config{
-		HTTP: HTTP{
-			Port: 8089,
-		},
+		Port:              8089,
 		ReadTimeout:       1 * time.Minute,
 		ReadHeaderTimeout: 15 * time.Second,
 		WriteTimeout:      1 * time.Minute,
@@ -74,10 +72,9 @@ var (
 )
 
 func TestConfig_newWebService(t *testing.T) {
-
 	t.Run("valid config", func(t *testing.T) {
 		httpServer := validConfig.newWebService()
-		if !strings.Contains(httpServer.Addr, faststrconv.Uint162String(validConfig.Port)) {
+		if !strings.Contains(httpServer.Addr, fmt.Sprintf(":%d", validConfig.Port)) {
 			t.Error("incorrect http port")
 		}
 
