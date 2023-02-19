@@ -491,12 +491,10 @@ linters-settings:
         severity: warning
 
   staticcheck:
-    # Select the Go version to target. The default is '1.13'.
-    go: "1.16"
+    go: "1.20"
 
   stylecheck:
-    # Select the Go version to target. The default is '1.13'.
-    go: "1.16"
+    go: "1.20"
 
   tagliatelle:
     # check the struck tag name case
