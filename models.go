@@ -132,5 +132,5 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 	if err != nil {
 		errorMessage += ": " + err.Error()
 	}
-	return fmt.Errorf("%s, terminationSignal: %s", errorMessage, terminationSignal)
+	return fmt.Errorf("%s, termination signal: %s", errorMessage, terminationSignal)
 }
