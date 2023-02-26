@@ -127,6 +127,10 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 	timeout, cancelFunc := context.WithTimeout(context.Background(), timeOutDuration)
 	defer cancelFunc()
 
+	errorMessage := "service stopped"
 	err := webServer.Shutdown(timeout)
-	return fmt.Errorf("service stopped: %w, terminationSignal: %s", err, terminationSignal)
+	if err != nil {
+		errorMessage += ": " + err.Error()
+	}
+	return fmt.Errorf("%s, terminationSignal: %s", errorMessage, terminationSignal)
 }
