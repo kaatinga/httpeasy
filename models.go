@@ -7,9 +7,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/julienschmidt/httprouter"
@@ -30,6 +27,9 @@ type Config struct {
 	ReadTimeout       time.Duration `env:"READ_TIMEOUT" default:"1m"`
 	ReadHeaderTimeout time.Duration `env:"READ_HEADER_TIMEOUT" default:"15s"`
 	WriteTimeout      time.Duration `env:"WRITE_TIMEOUT" default:"1m"`
+
+	terminate  chan struct{}
+	terminated chan struct{}
 }
 
 type SSL struct {
@@ -46,6 +46,16 @@ func (config *Config) newWebService() http.Server {
 		ReadHeaderTimeout: config.ReadHeaderTimeout,
 		WriteTimeout:      config.WriteTimeout,
 	}
+}
+
+func (config *Config) Init() {
+	config.terminate = make(chan struct{})
+	config.terminated = make(chan struct{})
+}
+
+func (config *Config) Terminate() {
+	config.terminate <- struct{}{}
+	<-config.terminated
 }
 
 // Launch enables the configured web service with the handlers that
@@ -100,7 +110,6 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 			funcErr := webServer.ListenAndServeTLS("", "")
 			if funcErr != nil {
 				shutdown <- funcErr
-				close(shutdown)
 			}
 		}()
 	default:
@@ -108,29 +117,29 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 			funcErr := webServer.ListenAndServe()
 			if funcErr != nil {
 				shutdown <- funcErr
-				close(shutdown)
 			}
 		}()
 	}
 
-	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
-
-	var terminationSignal string
-	select {
-	case osSignal := <-interrupt:
-		terminationSignal = osSignal.String()
-	case err := <-shutdown:
-		terminationSignal = err.Error()
-	}
+	<-config.terminate
 
 	timeout, cancelFunc := context.WithTimeout(context.Background(), timeOutDuration)
 	defer cancelFunc()
 
-	errorMessage := "service stopped"
-	err := webServer.Shutdown(timeout)
-	if err != nil {
-		errorMessage += ": " + err.Error()
+	var outputError error
+
+	if err := webServer.Shutdown(timeout); err != nil {
+		err := webServer.Close()
+		if err != nil {
+			return err
+		}
+		outputError = fmt.Errorf("unable to terminate the web service: %w", err)
 	}
-	return fmt.Errorf("%s, termination signal: %s", errorMessage, terminationSignal)
+	if outputError != nil {
+		return fmt.Errorf("%w: web service terminated: %w", outputError, <-shutdown)
+	} else {
+		outputError = fmt.Errorf("web service terminated: %w", <-shutdown)
+	}
+
+	return outputError
 }
