@@ -141,5 +141,7 @@ func (config *Config) Launch(handlers SetUpHandlers) error {
 		outputError = fmt.Errorf("web service terminated: %w", <-shutdown)
 	}
 
+	config.terminated <- struct{}{}
+
 	return outputError
 }
